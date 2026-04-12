@@ -30,6 +30,8 @@
             background: #475569;
             cursor: pointer;
             margin-top: -6px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         input[type=range]::-webkit-slider-runnable-track {
@@ -108,10 +110,10 @@
             }
         }
 
-        // ASCII Palettes
         const THEMES = {
             terminal: {
                 bg: '#1a1b26',
+                accent: '#2ac3de',
                 types: [
                     { threshold: 0.25, char: '≈', color: '#2ac3de' },
                     { threshold: 0.35, char: '~', color: '#7dcfff' },
@@ -124,6 +126,7 @@
             },
             paper: {
                 bg: '#fdf6e3',
+                accent: '#268bd2',
                 types: [
                     { threshold: 0.25, char: '≈', color: '#268bd2' },
                     { threshold: 0.35, char: '~', color: '#2aa198' },
@@ -135,22 +138,22 @@
                 ]
             },
             dungeon: {
-                bg: '#000000',
+                bg: '#0a0a0c',
+                accent: '#f43f5e',
                 types: [
                     { threshold: 0.35, char: ' ', color: '#000000' },
-                    { threshold: 0.38, char: '.', color: '#333333' },
-                    { threshold: 0.45, char: '#', color: '#555555' },
-                    { threshold: 0.60, char: '+', color: '#888888' },
-                    { threshold: 0.75, char: 'o', color: '#aaaaaa' },
-                    { threshold: 1.0,  char: '@', color: '#ffffff' }
+                    { threshold: 0.38, char: '.', color: '#334155' },
+                    { threshold: 0.45, char: '#', color: '#64748b' },
+                    { threshold: 0.60, char: '+', color: '#94a3b8' },
+                    { threshold: 0.75, char: 'o', color: '#cbd5e1' },
+                    { threshold: 1.0,  char: '@', color: '#f8fafc' }
                 ]
             }
         };
 
-        // Inline Icons
         const Icons = {
             Refresh: () => (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
             ),
             Settings: () => (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -160,16 +163,30 @@
             )
         };
 
+        // Helper for randomizing map parameters
+        const getRandomParams = () => {
+            const themes = Object.keys(THEMES);
+            return {
+                seed: Math.random() * 10000,
+                themeKey: themes[Math.floor(Math.random() * themes.length)],
+                scale: Math.floor(Math.random() * (120 - 30 + 1)) + 30,
+                fontSize: Math.floor(Math.random() * (18 - 10 + 1)) + 10,
+                waterLevel: Number((Math.random() * 0.4 - 0.1).toFixed(2))
+            };
+        };
+
         function App() {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             
-            // State
-            const [seed, setSeed] = useState(Math.random());
-            const [scale, setScale] = useState(45);
-            const [fontSize, setFontSize] = useState(14);
-            const [waterLevel, setWaterLevel] = useState(0); 
-            const [themeKey, setThemeKey] = useState('terminal');
+            // Initialize with random parameters immediately
+            const initialParams = useMemo(() => getRandomParams(), []);
+
+            const [seed, setSeed] = useState(initialParams.seed);
+            const [scale, setScale] = useState(initialParams.scale);
+            const [fontSize, setFontSize] = useState(initialParams.fontSize);
+            const [waterLevel, setWaterLevel] = useState(initialParams.waterLevel); 
+            const [themeKey, setThemeKey] = useState(initialParams.themeKey);
             const [showControls, setShowControls] = useState(true);
             const [isGenerating, setIsGenerating] = useState(false);
 
@@ -199,10 +216,8 @@
                 const rows = Math.ceil(rect.height / charHeight);
 
                 setIsGenerating(true);
-                
                 ctx.fillStyle = theme.bg;
                 ctx.fillRect(0, 0, rect.width, rect.height);
-                
                 ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
                 ctx.textBaseline = 'top';
 
@@ -217,7 +232,6 @@
                                   + 0.25 * noise.noise(4 * nx, 4 * ny);
                             
                             e = (e + 1) / 2;
-                            
                             const dx = x / cols - 0.5;
                             const dy = y / rows - 0.5;
                             const d = Math.sqrt(dx * dx + dy * dy) * 2;
@@ -252,7 +266,12 @@
             }, []);
 
             const regenerate = () => {
-                setSeed(Math.random() * 10000);
+                const p = getRandomParams();
+                setSeed(p.seed);
+                setThemeKey(p.themeKey);
+                setScale(p.scale);
+                setFontSize(p.fontSize);
+                setWaterLevel(p.waterLevel);
             };
 
             return (
@@ -261,121 +280,76 @@
                     ref={containerRef} 
                     style={{ backgroundColor: THEMES[themeKey].bg }}
                 >
-                    <canvas 
-                        ref={canvasRef} 
-                        className="block w-full h-full cursor-crosshair"
-                    />
+                    <canvas ref={canvasRef} className="block w-full h-full cursor-crosshair" />
 
                     {isGenerating && (
                         <div className="absolute top-6 right-6 z-10">
-                           <div className="w-4 h-4 bg-emerald-500 animate-pulse rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                           <div 
+                                className="w-4 h-4 rounded-full animate-pulse shadow-lg"
+                                style={{ 
+                                    backgroundColor: THEMES[themeKey].accent,
+                                    boxShadow: `0 0 15px ${THEMES[themeKey].accent}80`
+                                }}
+                            ></div>
                         </div>
                     )}
 
-                    <div 
-                        className={`absolute top-6 left-6 z-20 transition-all duration-500 ease-in-out ${
-                            showControls ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0 pointer-events-none'
-                        }`}
-                    >
-                        <div className="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white/50 w-80 text-slate-700">
-                            
+                    <div className={`absolute top-6 left-6 z-20 transition-all duration-500 ease-in-out ${showControls ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0 pointer-events-none'}`}>
+                        <div className="bg-white/95 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/50 w-80 text-slate-700">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-emerald-400 shadow-sm font-mono text-xl font-bold">
-                                        &gt;
-                                    </div>
-                                    <h1 className="text-lg font-bold font-mono tracking-tight text-slate-800">
-                                        ASCII_MAP
-                                    </h1>
+                                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm font-mono text-xl font-bold" style={{ backgroundColor: '#1e293b', color: THEMES[themeKey].accent }}>&gt;</div>
+                                    <h1 className="text-lg font-bold font-mono tracking-tighter text-slate-800">ASCII_MAP</h1>
                                 </div>
-                                <button 
-                                    onClick={regenerate}
-                                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-colors active:scale-95"
-                                    title="Regenerate Seed"
-                                >
-                                    <Icons.Refresh />
-                                </button>
+                                <button onClick={regenerate} className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-all active:scale-90 hover:rotate-45"><Icons.Refresh /></button>
                             </div>
 
                             <div className="space-y-6">
-                                <div className="flex bg-slate-100 p-1 rounded-xl">
+                                <div className="flex bg-slate-100 p-1.5 rounded-2xl">
                                     {['terminal', 'paper', 'dungeon'].map(t => (
-                                        <button
-                                            key={t}
-                                            onClick={() => setThemeKey(t)}
-                                            className={`flex-1 py-1.5 text-[10px] uppercase font-bold tracking-wider rounded-lg transition-all ${
-                                                themeKey === t ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'
-                                            }`}
-                                        >
+                                        <button key={t} onClick={() => setThemeKey(t)} className={`flex-1 py-1.5 text-[10px] uppercase font-bold tracking-widest rounded-xl transition-all ${themeKey === t ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}>
                                             {t}
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400">
+                                <div className="space-y-5">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
                                             <span>SCALE_FACTOR</span>
-                                            <span className="text-slate-600">{scale}</span>
+                                            <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{scale}</span>
                                         </div>
-                                        <input 
-                                            type="range" 
-                                            min="20" 
-                                            max="150" 
-                                            value={scale} 
-                                            onChange={(e) => setScale(Number(e.target.value))}
-                                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                                        />
+                                        <input type="range" min="20" max="150" value={scale} onChange={(e) => setScale(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
                                             <span>DENSITY_SIZE</span>
-                                            <span className="text-slate-600">{fontSize}px</span>
+                                            <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{fontSize}px</span>
                                         </div>
-                                        <input 
-                                            type="range" 
-                                            min="8" 
-                                            max="24" 
-                                            step="1"
-                                            value={fontSize} 
-                                            onChange={(e) => setFontSize(Number(e.target.value))}
-                                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                                        />
+                                        <input type="range" min="8" max="24" step="1" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
                                             <span>SEA_LEVEL</span>
-                                            <span className="text-slate-600">{Math.round(waterLevel * 100)}%</span>
+                                            <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{Math.round(waterLevel * 100)}%</span>
                                         </div>
-                                        <input 
-                                            type="range" 
-                                            min="-0.2" 
-                                            max="0.5" 
-                                            step="0.01"
-                                            value={waterLevel} 
-                                            onChange={(e) => setWaterLevel(Number(e.target.value))}
-                                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                                        />
+                                        <input type="range" min="-0.2" max="0.5" step="0.01" value={waterLevel} onChange={(e) => setWaterLevel(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="mt-6 pt-4 border-t border-slate-100 text-[9px] text-center text-slate-400 font-mono leading-relaxed uppercase tracking-widest">
-                                Right-click canvas to save image<br/>
-                                Procedural Simplex Generation v1.0
+                            <div className="mt-8 pt-4 border-t border-slate-100 text-[9px] text-center text-slate-400 font-mono leading-relaxed uppercase tracking-[0.2em]">
+                                Right-click to save PNG<br/>
+                                <span className="opacity-60 text-[8px]">Simplex Proc-Gen v1.2 (Initial Load Random)</span>
                             </div>
                         </div>
                     </div>
 
-                    <button 
-                        onClick={() => setShowControls(!showControls)}
-                        className="absolute bottom-6 left-6 z-30 p-3 bg-white/90 backdrop-blur text-slate-600 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all border border-white/50"
-                    >
+                    <button onClick={() => setShowControls(!showControls)} className="absolute bottom-6 left-6 z-30 p-3 bg-white/90 backdrop-blur text-slate-600 rounded-full shadow-xl hover:scale-110 active:scale-90 transition-all border border-white/50">
                         {showControls ? <Icons.Minimize /> : <Icons.Settings />}
                     </button>
-
                 </div>
             );
         }
